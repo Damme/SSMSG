@@ -28,7 +28,7 @@ Example to set relay on node:
 INSERT INTO sendrequest SET nodeid=3, childid=3, messagetype=1, subtype=2, payload=1;
 ```
 
-ssmsg.sh options:
+ssmsg.sh --help
 ```
  Option                       Meaning
   (no option)                 Run in background
