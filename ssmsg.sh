@@ -125,8 +125,7 @@ done < $SERIALPORT &
 while true; do
         sleep 5
         mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database} -ss -e \
-          "SELECT nodeid,childid,messagetype,'0',subtype,payload FROM sendrequest WHERE sent IS NULL ORDER BY id; " \
-            "UPDATE sendrequest set sent=NOW() WHERE sent IS NULL ORDER BY id limit 1;" | sed -e 's/\t/;/g' | while read -r line
+          "SELECT nodeid,childid,messagetype,'0',subtype,payload FROM sendrequest WHERE sent IS NULL ORDER BY id; UPDATE sendrequest set sent=NOW() WHERE sent IS NULL ORDER BY id limit 1;" | sed -e 's/\t/;/g' | while read -r line
         do
                 echo -e $line > $SERIALPORT
                 echo "Sending : $line"
