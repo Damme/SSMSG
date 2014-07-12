@@ -71,7 +71,8 @@ while read line; do
                 # Get next nodeid from DB and send response
                 if [ "${array[2]}" == 3 ] && [ "${array[3]}" == 3 ] ; then
                         id=`mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database} -ss -e \
-                                "SELECT u.nodeid + 1 AS id FROM node u LEFT JOIN node u1 ON u1.nodeid = u.nodeid + 1 WHERE u1.nodeid IS NULL ORDER BY u.nodeid LIMIT 0, 1;"`
+                          "SELECT u.nodeid + 1 AS id FROM node u LEFT JOIN node u1 ON u1.nodeid = u.nodeid + 1 " \
+                          "WHERE u1.nodeid IS NULL ORDER BY u.nodeid LIMIT 0, 1;"`
                         # If table is empty, set id to 1
                         if [ "$id" == "" ] ; then
                                 id=0
@@ -82,7 +83,7 @@ while read line; do
                 # Respond to config requests
                 if [ "${array[2]}" == 3 ] && [ "${array[3]}" == 6 ] ; then
                         val=`mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database} -ss -e \
-                                "SELECT value FROM config WHERE configid=${array[4]} LIMIT 1;"`
+                          "SELECT value FROM config WHERE configid=${array[4]} LIMIT 1;"`
                         echo -e -n "${array[0]};255;3;0;6;$val\n" > $SERIALPORT
                         echo "Responding configid ${array[4]} ($val)...."
                 fi
@@ -91,29 +92,29 @@ while read line; do
                 if [ "${array[2]}" == 0 ] && [ "${array[3]}" == 17 ] || [ "${array[3]}" == 18 ] ; then
                         echo "Detected node ${array[0]} (${array[4]})"
                         echo "INSERT INTO node (nodeid, type, version, lastseen) VALUES (${array[0]}, ${array[3]}, '${array[4]}', NOW()) " \
-                                "ON DUPLICATE KEY UPDATE nodeid=${array[0]}, type=${array[3]}, version='${array[4]}', lastseen=NOW();" | \
-                                        mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
+                          "ON DUPLICATE KEY UPDATE nodeid=${array[0]}, type=${array[3]}, version='${array[4]}', lastseen=NOW();" | \
+                            mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
                 fi
                 # Update I_SKETCH_NAME
                 if [ "${array[2]}" == 3 ] && [ "${array[3]}" == 11 ] ; then
                         echo "UPDATE node SET I_SKETCH_NAME='${array[4]}' WHERE nodeid=${array[0]}" | \
-                                mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
+                          mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
                 fi
                 # Update I_SKETCH_VERSION
                 if [ "${array[2]}" == 3 ] && [ "${array[3]}" == 12 ] ; then
                         echo "UPDATE node SET I_SKETCH_VERSION='${array[4]}' WHERE nodeid=${array[0]}" | \
-                                mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
+                          mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
                 fi
                 # Insert into sensorlist
                 if [ "${array[2]}" == 0 ] && [ "${array[1]}" != 255 ] ; then
                         echo "INSERT INTO sensorlist SET nodeid='${array[0]}', childid='${array[1]}', type='${array[3]}'" \
-                                "ON DUPLICATE KEY UPDATE nodeid='${array[0]}', childid='${array[1]}', type='${array[3]}';" | \
-                                mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
+                          "ON DUPLICATE KEY UPDATE nodeid='${array[0]}', childid='${array[1]}', type='${array[3]}';" | \
+                            mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
                 fi
                 # Insert data into sensordata
                 if [ "${array[2]}" == 1 ] ; then
                         echo "INSERT INTO sensordata SET nodeid='${array[0]}', childid='${array[1]}', value='${array[4]}', datetime=NOW();" | \
-                                mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
+                          mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database}
                 fi
 
         fi
@@ -124,7 +125,8 @@ done < $SERIALPORT &
 while true; do
         sleep 5
         mysql -u ${mysql_user} -p${mysql_password} -h ${mysql_host} ${mysql_database} -ss -e \
-                "SELECT nodeid,childid,messagetype,'0',subtype,payload FROM sendrequest WHERE sent IS NULL ORDER BY id; UPDATE sendrequest set sent=NOW() WHERE sent IS NULL O$
+          "SELECT nodeid,childid,messagetype,'0',subtype,payload FROM sendrequest WHERE sent IS NULL ORDER BY id; " \
+            "UPDATE sendrequest set sent=NOW() WHERE sent IS NULL ORDER BY id limit 1;" | sed -e 's/\t/;/g' | while read -r line
         do
                 echo -e $line > $SERIALPORT
                 echo "Sending : $line"
