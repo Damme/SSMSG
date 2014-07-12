@@ -28,6 +28,8 @@ Example to set relay on node:
 INSERT INTO sendrequest SET nodeid=3, childid=3, messagetype=1, subtype=2, payload=1;
 ```
 
+Requires mysensors gateway 1.4b.
+
 ssmsg.sh --help
 ```
  Option                       Meaning
