@@ -30,7 +30,8 @@ INSERT INTO sendrequest SET nodeid=3, childid=3, messagetype=1, subtype=2, paylo
 
 ssmsg.sh options:
 ```
- Option                Meaning
-  -f                   Run in foreground
-  -x                   Kill script
+ Option                       Meaning
+  (no option)                 Run in background
+  -f                          Run in foreground
+  -x                          Kill script
 ```
